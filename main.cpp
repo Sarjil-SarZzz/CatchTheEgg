@@ -140,6 +140,114 @@ void display()
     glFlush();
 }
 
+// ---------------- CHICKEN ----------------
+void drawChicken(float x, float y)
+{
+    glColor3f(1.0, 0.72, 0.35);
+    drawEllipse(x, y, 28, 18);
+
+    glColor3f(0.95, 0.50, 0.20);
+    drawEllipse(x + 5, y - 2, 13, 9);
+
+    glColor3f(1.0, 0.82, 0.45);
+    drawEllipse(x + 28, y + 17, 11, 11);
+
+    glColor3f(1.0, 0.0, 0.0);
+
+    glBegin(GL_TRIANGLES);
+
+        glVertex2f(x + 22, y + 27);
+        glVertex2f(x + 27, y + 39);
+        glVertex2f(x + 32, y + 27);
+
+    glEnd();
+}
+
+// ---------------- EGG ----------------
+void drawEgg(float x, float y, int type)
+{
+    glColor3f(0,0,0);
+
+    drawEllipse(x, y, 11, 16);
+
+    if(type == 0)
+        glColor3f(1,1,1);
+
+    else if(type == 1)
+        glColor3f(0,0,1);
+
+    else
+        glColor3f(1,1,0);
+
+    drawEllipse(x, y, 9, 14);
+}
+
+// ---------------- POOP ----------------
+void drawPoop(float x, float y)
+{
+    glColor3f(0.35, 0.18, 0.05);
+
+    drawEllipse(x, y, 10, 15);
+}
+
+// ---------------- OBJECT ----------------
+void drawObject(Object &o)
+{
+    if(o.type == 3)
+        drawPoop(o.x, o.y);
+
+    else
+        drawEgg(o.x, o.y, o.type);
+}
+
+// ---------------- BASKET ----------------
+void drawBasket()
+{
+    glColor3f(1,0.5,0);
+
+    glBegin(GL_QUADS);
+
+        glVertex2f(basketX, 50);
+        glVertex2f(basketX + basketWidth, 50);
+        glVertex2f(basketX + basketWidth, 80);
+        glVertex2f(basketX, 80);
+
+    glEnd();
+}
+
+// ---------------- SPAWN ----------------
+void spawnObject()
+{
+    for(int i = 0; i < chickens.size(); i++)
+    {
+        if(rand() % 140 == 0)
+        {
+            Object o;
+
+            o.x = chickens[i].x;
+            o.y = chickens[i].y - 30;
+
+            int r = rand() % 100;
+
+            if(r < 45)
+                o.type = 0;
+
+            else if(r < 70)
+                o.type = 1;
+
+            else if(r < 88)
+                o.type = 2;
+
+            else
+                o.type = 3;
+
+            o.speed = 1.5 + (rand() % 2);
+
+            objects.push_back(o);
+        }
+    }
+}
+
 // ---------------- INIT ----------------
 void init()
 {
