@@ -10,10 +10,10 @@
 	<ctime>
 	<cstdio>
 
-1770613205 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\glut.h
+1770615125 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\glut.h
 	"freeglut_std.h"
 
-1770613205 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\freeglut_std.h
+1770615122 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\freeglut_std.h
 	<windows.h>
 	<EGL/egl.h>
 	<GLES/gl.h>
@@ -879,4 +879,15 @@
 
 1526093414 c:\program files\codeblocks\mingw\x86_64-w64-mingw32\include\gl\glu.h
 	<GL/gl.h>
+
+1779082010 source:c:\users\user\desktop\catch the eggs\catchtheegg\main.cpp
+	<GL/glut.h>
+	<windows.h>
+	<mmsystem.h>
+	<iostream>
+	<cmath>
+	<cstdlib>
+	<vector>
+	<ctime>
+	<cstdio>
 

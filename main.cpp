@@ -113,33 +113,6 @@ void drawSticks()
     glLineWidth(1);
 }
 
-// ---------------- DISPLAY ----------------
-void display()
-{
-    glClear(GL_COLOR_BUFFER_BIT);
-
-    drawBackground();
-    drawSticks();
-
-    glColor3f(0,0,0);
-
-    char s[100];
-
-    sprintf(s, "Score: %d", score);
-    drawText(20, 560, s);
-
-    sprintf(s, "Time: %d", timeLeft);
-    drawText(650, 560, s);
-
-    if(gameState == MENU)
-    {
-        drawText(300, 390, "CATCH THE EGGS");
-        drawText(240, 340, "Press ENTER to Start");
-    }
-
-    glFlush();
-}
-
 // ---------------- CHICKEN ----------------
 void drawChicken(float x, float y)
 {
@@ -248,6 +221,264 @@ void spawnObject()
     }
 }
 
+// ---------------- SOUND ----------------
+void playCatchSound()
+{
+    PlaySound(TEXT("SystemAsterisk"), NULL,
+              SND_ALIAS | SND_ASYNC);
+}
+
+void playBadSound()
+{
+    PlaySound(TEXT("SystemHand"), NULL,
+              SND_ALIAS | SND_ASYNC);
+}
+
+// ---------------- RESET ----------------
+void resetGame()
+{
+    objects.clear();
+    chickens.clear();
+
+    chickens.push_back({150, 520, true});
+    chickens.push_back({400, 440, false});
+    chickens.push_back({650, 360, true});
+
+    basketX = 350;
+
+    score = 0;
+
+    timeLeft = 60;
+
+    gameState = PLAYING;
+}
+
+// ---------------- COLLISION ----------------
+void checkCollision()
+{
+    for(int i = 0; i < objects.size(); i++)
+    {
+        bool hitBasket =
+
+            objects[i].y <= 90 &&
+            objects[i].y >= 45 &&
+
+            objects[i].x >= basketX &&
+            objects[i].x <= basketX + basketWidth;
+
+        if(hitBasket)
+        {
+            if(objects[i].type == 0)
+            {
+                score += 1;
+                playCatchSound();
+            }
+
+            else if(objects[i].type == 1)
+            {
+                score += 5;
+                playCatchSound();
+            }
+
+            else if(objects[i].type == 2)
+            {
+                score += 10;
+                playCatchSound();
+            }
+
+            else
+            {
+                score -= 10;
+                playBadSound();
+            }
+
+            objects.erase(objects.begin() + i);
+
+            i--;
+        }
+    }
+}
+
+// ---------------- UPDATE ----------------
+void update(int value)
+{
+    if(gameState == PLAYING)
+    {
+        for(int i = 0; i < chickens.size(); i++)
+        {
+            if(chickens[i].moveRight)
+                chickens[i].x += 2;
+
+            else
+                chickens[i].x -= 2;
+
+            if(chickens[i].x > 720)
+                chickens[i].moveRight = false;
+
+            if(chickens[i].x < 60)
+                chickens[i].moveRight = true;
+        }
+
+        spawnObject();
+
+        for(int i = 0; i < objects.size(); i++)
+        {
+            objects[i].y -= objects[i].speed;
+
+            if(objects[i].y < 0)
+            {
+                objects.erase(objects.begin() + i);
+
+                i--;
+            }
+        }
+
+        checkCollision();
+
+        if(timeLeft <= 0)
+            gameState = GAME_OVER;
+    }
+
+    glutPostRedisplay();
+
+    glutTimerFunc(16, update, 0);
+}
+
+// ---------------- TIMER ----------------
+void timer(int value)
+{
+    if(gameState == PLAYING &&
+       timeLeft > 0)
+
+        timeLeft--;
+
+    if(timeLeft <= 0)
+        gameState = GAME_OVER;
+
+    glutTimerFunc(1000, timer, 0);
+}
+
+// ---------------- DISPLAY ----------------
+void display()
+{
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    if (gameState == MENU)
+    {
+        drawBackground();
+        drawSticks();
+
+        glColor3f(0, 0, 0);
+        drawText(305, 390, "CATCH THE EGGS");
+        drawText(250, 340, "Press ENTER to Start");
+        drawText(220, 305, "Bonus: Multiple chickens and sound effects");
+        drawText(230, 270, "Use LEFT and RIGHT arrow keys to move");
+        drawText(280, 235, "Press P to Pause");
+        drawText(285, 200, "Press ESC to Exit");
+    }
+    else
+    {
+        drawBackground();
+        drawSticks();
+
+        for (int i = 0; i < (int)chickens.size(); i++)
+            drawChicken(chickens[i].x, chickens[i].y);
+
+        for (int i = 0; i < (int)objects.size(); i++)
+            drawObject(objects[i]);
+
+        drawBasket();
+
+        glColor3f(0, 0, 0);
+        char s[100];
+
+        sprintf(s, "Score: %d", score);
+        drawText(20, 560, s);
+
+        sprintf(s, "Time: %d", timeLeft);
+        drawText(650, 560, s);
+
+        drawText(20, 530, "White:+1  Blue:+5  Gold:+10  Brown Poop:-10");
+
+        if (gameState == PAUSED)
+        {
+            glColor3f(1, 0, 0);
+            drawText(350, 320, "PAUSED");
+            drawText(295, 285, "Press ENTER to Resume");
+        }
+
+        if (gameState == GAME_OVER)
+        {
+            glColor3f(1, 0, 0);
+            drawText(335, 330, "GAME OVER");
+
+            glColor3f(0, 0, 0);
+            sprintf(s, "Final Score: %d", score);
+            drawText(325, 295, s);
+            drawText(300, 255, "Press R to Restart");
+            drawText(310, 220, "Press ESC to Exit");
+        }
+    }
+
+    glFlush();
+
+}
+
+// ---------------- KEYBOARD ----------------
+void keyboard(unsigned char key,
+              int x,
+              int y)
+{
+    if(key == 13)
+    {
+        if(gameState == MENU)
+            resetGame();
+
+        else if(gameState == PAUSED)
+            gameState = PLAYING;
+    }
+
+    if(key == 'p' || key == 'P')
+    {
+        if(gameState == PLAYING)
+            gameState = PAUSED;
+    }
+
+    if(key == 'r' || key == 'R')
+    {
+        resetGame();
+    }
+
+    if(key == 27)
+    {
+        exit(0);
+    }
+
+    glutPostRedisplay();
+}
+
+// ---------------- SPECIAL KEYBOARD ----------------
+void specialKeyboard(int key,
+                     int x,
+                     int y)
+{
+    if(gameState != PLAYING)
+        return;
+
+    if(key == GLUT_KEY_LEFT)
+        basketX -= 20;
+
+    if(key == GLUT_KEY_RIGHT)
+        basketX += 20;
+
+    if(basketX < 0)
+        basketX = 0;
+
+    if(basketX > width - basketWidth)
+        basketX = width - basketWidth;
+}
+
+
 // ---------------- INIT ----------------
 void init()
 {
@@ -281,7 +512,14 @@ int main(int argc, char** argv)
 
     glutDisplayFunc(display);
 
+    glutKeyboardFunc(keyboard);
+    glutSpecialFunc(specialKeyboard);
+
+    glutTimerFunc(0, update, 0);
+    glutTimerFunc(1000, timer, 0);
+
     glutMainLoop();
 
     return 0;
 }
+
